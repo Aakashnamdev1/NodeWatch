@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NodeWatch — Tech Support On-Demand</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-main: #ffffff;
+    --bg-alt: #fcfdfd;
+    --panel: #ffffff;
+    --border: #f1f5f9;
+    --border-strong: #fed7d7;
+    
+    --text-head: #0f172a;
+    --text-body: #475569;
+    --text-muted: #64748b;
+    --text-dim: #94a3b8;
+    
+    /* Luxury White & Crimson Red Theme */
+    --red-primary: #e11d48;
+    --red-hover: #be123c;
+    --red-accent: #ff4d6d;
+    --red-subtle: #fff1f2;
+    --red-glow: rgba(225, 29, 72, 0.2);
+    --grad-red: linear-gradient(135deg, #e11d48 0%, #ff3366 60%, #f97316 100%);
+    
+    --shadow-soft: 0 10px 30px -10px rgba(15, 23, 42, 0.05);
+    --shadow-hover: 0 20px 40px -12px rgba(225, 29, 72, 0.16);
+    --shadow-red: 0 10px 25px -5px rgba(225, 29, 72, 0.35);
+
+    --radius: 16px;
+    --maxw: 1240px;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg-main);
+    color: var(--text-body);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, .logo { font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text-head); }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  a { color: inherit; text-decoration: none; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  svg { display: block; }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+  /* Animated Background */
+  .bg-canvas { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+  .grid-pattern {
+    position: absolute; inset: 0;
+    background-image: radial-gradient(rgba(225, 29, 72, 0.07) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .orb {
+    position: absolute; border-radius: 50%; filter: blur(100px);
+    animation: floatDrift 18s ease-in-out infinite alternate;
+  }
+  .orb-1 { width: 550px; height: 550px; background: rgba(255, 77, 109, 0.11); top: -140px; right: -80px; }
+  .orb-2 { width: 480px; height: 480px; background: rgba(225, 29, 72, 0.08); top: 40%; left: -120px; animation-duration: 22s; }
+  @keyframes floatDrift {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(40px, 50px) scale(1.08); }
+  }
+
+  .grad-text {
+    background: var(--grad-red);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Segmented Mode Selector Switch */
+  .mode-switch-wrapper {
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: 99px;
+    display: inline-flex;
+    position: relative;
+    border: 1px solid #e2e8f0;
+  }
+  .mode-btn {
+    padding: 7px 18px;
+    border-radius: 99px;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    transition: all .25s var(--ease);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .mode-btn.active {
+    background: #ffffff;
+    color: var(--red-primary);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  }
+  .badge-tag {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 99px;
+    font-weight: 800;
+    background: var(--red-subtle);
+    color: var(--red-primary);
+  }
+
+  /* Top Navigation */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(225, 29, 72, 0.08);
+  }
+  .topbar-inner {
+    max-width: var(--maxw); margin: 0 auto; padding: 14px 24px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .logo {
+    font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 10px;
+    letter-spacing: -0.02em;
+  }
+  .logo-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--grad-red); display: flex; align-items: center; justify-content: center;
+    color: #fff; box-shadow: 0 4px 10px rgba(225, 29, 72, 0.3);
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px 22px; border-radius: 12px; font-size: 14px; font-weight: 700;
+    cursor: pointer; border: 1px solid transparent; transition: all .25s var(--ease);
+    text-align: center;
+  }
+  .btn-primary { background: var(--grad-red); color: #fff; box-shadow: var(--shadow-red); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 28px -6px rgba(225, 29, 72, 0.45); }
+  .btn-ghost { background: #fff; color: var(--text-head); border: 1px solid var(--border-strong); }
+  .btn-ghost:hover { border-color: var(--red-primary); color: var(--red-primary); transform: translateY(-2px); }
+  .btn-sm { padding: 8px 16px; font-size: 13px; border-radius: 10px; }
+  .btn-block { width: 100%; }
+
+  /* Hero */
+  .hero { position: relative; z-index: 1; padding: 64px 0 40px; }
+  .hero-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 40px; align-items: center; }
+  .hero-text h1 {
+    font-size: clamp(32px, 4vw, 52px); line-height: 1.14;
+    letter-spacing: -0.03em; margin: 18px 0; font-weight: 800;
+  }
+  .hero-text p { font-size: 16.5px; line-height: 1.6; color: var(--text-muted); margin-bottom: 28px; max-width: 520px; }
+  .hero-pills { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 30px; }
+  .pill-item {
+    display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600;
+    padding: 6px 14px; border-radius: 99px; background: #fff; border: 1px solid #e2e8f0;
+  }
+  .pill-item svg { color: var(--red-primary); }
+
+  /* Fast Card Side (B2C / B2B) */
+  .booking-card {
+    background: #fff; border: 1px solid var(--border-strong); border-radius: 22px;
+    padding: 32px; box-shadow: var(--shadow-hover); position: relative; overflow: hidden;
+  }
+  .booking-card::before {
+    content:''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: var(--grad-red);
+  }
+  .card-deal-banner {
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--red-subtle); border: 1px dashed var(--red-primary);
+    border-radius: 12px; padding: 10px 14px; margin-bottom: 20px;
+  }
+  .deal-tag { font-size: 12.5px; font-weight: 800; color: var(--red-primary); }
+  .deal-price { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 20px; font-weight: 800; color: var(--red-primary); }
+  .deal-price span { font-size: 12px; text-decoration: line-through; color: var(--text-dim); margin-right: 4px; }
+
+  /* Top Issues Section (B2C) */
+  section { position: relative; z-index: 1; padding: 70px 0; }
+  .section-head { text-align: center; max-width: 600px; margin: 0 auto 46px; }
+  .section-head h2 { font-size: clamp(26px, 3vw, 36px); font-weight: 800; letter-spacing: -0.02em; margin: 10px 0; }
+  .section-head p { font-size: 15px; color: var(--text-muted); line-height: 1.6; margin: 0; }
+
+  .issues-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .issue-box {
+    background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px; box-shadow: var(--shadow-soft); transition: all .3s var(--ease);
+    display: flex; flex-direction: column; cursor: pointer;
+  }
+  .issue-box:hover {
+    transform: translateY(-5px); border-color: var(--border-strong);
+    box-shadow: var(--shadow-hover);
+  }
+  .issue-icon {
+    width: 44px; height: 44px; border-radius: 12px; background: var(--red-subtle);
+    display: flex; align-items: center; justify-content: center; color: var(--red-primary);
+    margin-bottom: 16px;
+  }
+  .issue-box h4 { margin: 0 0 6px; font-size: 16.5px; font-weight: 700; }
+  .issue-box p { margin: 0 0 16px; font-size: 13px; color: var(--text-muted); line-height: 1.5; flex-grow: 1; }
+  .issue-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 12px; font-weight: 700; color: var(--red-primary);
+    padding-top: 12px; border-top: 1px solid #f8fafc;
+  }
+
+  /* Form Elements */
+  .form-group { margin-bottom: 14px; }
+  .form-group label { display: block; font-size: 12px; font-weight: 700; color: var(--text-head); margin-bottom: 5px; }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px;
+    padding: 11px 13px; font-family: inherit; font-size: 13.5px; color: var(--text-head);
+    transition: all .2s var(--ease);
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: none; border-color: var(--red-primary); background: #fff;
+    box-shadow: 0 0 0 3px var(--red-glow);
+  }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* B2B Specific Styling (Hidden by default, shown when toggled) */
+  .b2b-view { display: none; }
+  .b2c-view { display: block; }
+
+  body.is-b2b .b2c-view { display: none; }
+  body.is-b2b .b2b-view { display: block; }
+
+  /* B2B Pricing Cards */
+  .b2b-pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .plan-card {
+    background: #fff; border: 1px solid var(--border); border-radius: 20px;
+    padding: 34px 28px; box-shadow: var(--shadow-soft); display: flex; flex-direction: column;
+    position: relative; transition: all .3s var(--ease);
+  }
+  .plan-card.popular {
+    border: 2px solid var(--red-primary);
+    box-shadow: 0 20px 45px -10px rgba(225, 29, 72, 0.2);
+    background: linear-gradient(180deg, #fff9f9 0%, #ffffff 40%);
+  }
+  .plan-badge {
+    position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+    background: var(--grad-red); color: #fff; font-size: 11px; font-weight: 800;
+    padding: 4px 12px; border-radius: 99px; letter-spacing: 0.04em;
+  }
+  .plan-price { font-size: 36px; font-weight: 800; color: var(--text-head); margin: 12px 0 6px; }
+  .plan-price span { font-size: 13px; color: var(--text-dim); font-weight: 500; }
+  .plan-features { margin: 20px 0 28px; display: flex; flex-direction: column; gap: 11px; flex-grow: 1; }
+  .plan-features li { display: flex; align-items: center; gap: 9px; font-size: 13px; }
+  .plan-features li svg { color: var(--red-primary); flex-shrink: 0; }
+
+  footer { background: #fff; padding: 40px 0 30px; border-top: 1px solid var(--border); }
+  .footer-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+
+  @media (max-width: 992px) {
+    .hero-grid { grid-template-columns: 1fr; }
+    .issues-grid, .b2b-pricing-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 680px) {
+    .issues-grid, .b2b-pricing-grid { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    .topbar-inner { flex-direction: column; gap: 12px; }
+  }
+</style>
+</head>
+<body id="pageBody">
+
+<div class="bg-canvas">
+  <div class="grid-pattern"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+</div>
+
+<!-- HEADER WITH INSTANT TOGGLE -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="logo" href="#">
+      <div class="logo-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <span>Node<span class="grad-text">Watch</span></span>
+    </a>
+
+    <!-- Central Switcher: B2C vs B2B -->
+    <div class="mode-switch-wrapper">
+      <button class="mode-btn active" id="btnB2C" onclick="switchMode('b2c')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
+        Personal &amp; Home <span class="badge-tag">₹49 Quick Fix</span>
+      </button>
+      <button class="mode-btn" id="btnB2B" onclick="switchMode('b2b')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        Business &amp; Enterprise
+      </button>
+    </div>
+
+    <div>
+      <a class="btn btn-primary btn-sm" href="#book" id="navActionBtn">Book 20-Min Call</a>
+    </div>
+  </div>
+</header>
+
+<!-- ========================================== -->
+<!-- B2C VIEW: CONSUMER & PERSONAL QUICK REPAIR -->
+<!-- ========================================== -->
+<div class="b2c-view">
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-text">
+        <div class="pill-item" style="display:inline-flex; border-color:var(--border-strong); background:var(--red-subtle); color:var(--red-primary); margin-bottom:14px;">
+          <span style="width:7px; height:7px; border-radius:50%; background:var(--red-primary);"></span> Engineers on-shift right now
+        </div>
+        <h1>Stuck on a tech issue? <br>Talk to an expert in <span class="grad-text">20 minutes.</span></h1>
+        <p>No waiting in service centers or confusing bot menus. Book an immediate callback for just ₹49. Tell us what is broken — we diagnose, identify the root cause, and guide you through the solution live.</p>
+        
+        <div class="hero-pills">
+          <div class="pill-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Callback under 20 mins</div>
+          <div class="pill-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Zero jargon, easy steps</div>
+          <div class="pill-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>100% money back if unsolved</div>
+        </div>
+      </div>
+
+      <!-- Quick B2C Booking Card -->
+      <div class="booking-card" id="book">
+        <div class="card-deal-banner">
+          <div>
+            <div class="deal-tag">INTRODUCTORY DIAGNOSTIC CALL</div>
+            <div style="font-size:12px; color:var(--text-muted);">Pay nominal slot fee, talk live</div>
+          </div>
+          <div class="deal-price"><span>₹499</span> ₹49</div>
+        </div>
+
+        <form id="b2cForm" onsubmit="handleFormSubmit(event, 'b2c')">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Your Name *</label>
+              <input type="text" required placeholder="Aakash Namdev">
+            </div>
+            <div class="form-group">
+              <label>Phone for Callback *</label>
+              <input type="tel" required placeholder="Mobile number">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>What's causing trouble? *</label>
+            <select id="b2cIssueSelect" required>
+              <option value="">Select your main issue</option>
+              <option value="wifi">Wi-Fi drops / Router unreachable</option>
+              <option value="slow">PC or Laptop running extremely slow</option>
+              <option value="printer">Printer not connecting / Spooler error</option>
+              <option value="virus">Pop-ups, virus or malware suspicion</option>
+              <option value="email">Outlook / Gmail login or syncing lock</option>
+              <option value="backup">Accidentally deleted files / drive recovery</option>
+              <option value="other">Other specific hardware/software issue</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Briefly explain (1 line)</label>
+            <textarea rows="2" placeholder="e.g. My Wi-Fi disconnects every 5 mins only on my Windows laptop"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">
+            Book My Call (₹49) &rarr;
+          </button>
+          <div style="font-size:11.5px; text-align:center; color:var(--text-dim); margin-top:10px;">
+            🔒 Secure UPI / Card Payment · Instant SMS confirmation
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- MOST COMMON USER ISSUES (B2C) -->
+  <section style="background:var(--bg-alt); border-top:1px solid var(--border);">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="badge-tag">Most Frequent Fixes</span>
+        <h2>Issues Our Experts Solve Every Day</h2>
+        <p>Pick your problem below to automatically prioritize your technician callback slot.</p>
+      </div>
+
+      <div class="issues-grid">
+        <!-- 1 -->
+        <div class="issue-box" onclick="prefillIssue('wifi')">
+          <div class="issue-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a9 9 0 0 1 0 18"/></svg></div>
+          <h4>Wi-Fi &amp; Internet Dropouts</h4>
+          <p>Frequent disconnects, router IP conflicts, slow speed on specific laptops, or DNS unreachable errors.</p>
+          <div class="issue-footer"><span>Avg Fix: 15 mins</span> <span>Select &rarr;</span></div>
+        </div>
+        <!-- 2 -->
+        <div class="issue-box" onclick="prefillIssue('slow')">
+          <div class="issue-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+          <h4>Slow Laptop &amp; High CPU</h4>
+          <p>100% disk usage, freezing during boot, heating, fan noise, or background bloatware clogging Windows &amp; Mac.</p>
+          <div class="issue-footer"><span>Avg Fix: 20 mins</span> <span>Select &rarr;</span></div>
+        </div>
+        <!-- 3 -->
+        <div class="issue-box" onclick="prefillIssue('printer')">
+          <div class="issue-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></div>
+          <h4>Printer Offline / Driver Error</h4>
+          <p>Wireless printer not found, print queue stuck, spooler service errors for HP, Canon, Epson &amp; Brother.</p>
+          <div class="issue-footer"><span>Avg Fix: 12 mins</span> <span>Select &rarr;</span></div>
+        </div>
+        <!-- 4 -->
+        <div class="issue-box" onclick="prefillIssue('virus')">
+          <div class="issue-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v5c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V7l8-4z"/></svg></div>
+          <h4>Malware &amp; Browser Hijacks</h4>
+          <p>Suspicious popups, Chrome search redirects, suspected phishing files, and antivirus cleanup.</p>
+          <div class="issue-footer"><span>Avg Fix: 25 mins</span> <span>Select &rarr;</span></div>
+        </div>
+        <!-- 5 -->
+        <div class="issue-box" onclick="prefillIssue('email')">
+          <div class="issue-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 7l9 6 9-6"/></svg></div>
+          <h4>Email Lockout &amp; Sync Errors</h4>
+          <p>Outlook password loops, IMAP/SMTP failed connections, 2-factor authentication locks, and mailbox full.</p>
+          <div class="issue-footer"><span>Avg Fix: 15 mins</span> <span>Select &rarr;</span></div>
+        </div>
+        <!-- 6 -->
+        <div class="issue-box" onclick="prefillIssue('backup')">
+          <div class="issue-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+          <h4>Data Backup &amp; Recovery</h4>
+          <p>Restoring files from corrupted external hard drives, configuring Google Drive / OneDrive automatic backups.</p>
+          <div class="issue-footer"><span>Avg Fix: 30 mins</span> <span>Select &rarr;</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ========================================== -->
+<!-- B2B VIEW: MANAGED IT FOR BUSINESS & BPO    -->
+<!-- ========================================== -->
+<div class="b2b-view">
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-text">
+        <div class="pill-item" style="display:inline-flex; border-color:var(--border-strong); background:var(--red-subtle); color:var(--red-primary); margin-bottom:14px;">
+          <span style="width:7px; height:7px; border-radius:50%; background:var(--red-primary);"></span> Business SLA &amp; Dedicated Helpdesk
+        </div>
+        <h1>Zero Downtime Managed IT for <span class="grad-text">Modern Companies.</span></h1>
+        <p>Full-stack infrastructure operations, Microsoft 365 cloud administration, and on-demand network engineering. Flat monthly retainers with strict 15-minute response guarantees.</p>
+        
+        <div class="hero-pills">
+          <div class="pill-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Sub-15 Min Business SLA</div>
+          <div class="pill-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Dedicated Slack/Teams Helpdesk</div>
+          <div class="pill-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Official GST Invoicing</div>
+        </div>
+      </div>
+
+      <!-- B2B Custom Quote Shell -->
+      <div class="booking-card">
+        <h3 style="margin:0 0 6px; font-size:18px;">Request Enterprise SLA Assessment</h3>
+        <p style="margin:0 0 20px; font-size:13px; color:var(--text-muted);">Get a customized IT coverage plan for your workstations and servers.</p>
+        
+        <form id="b2bForm" onsubmit="handleFormSubmit(event, 'b2b')">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Work Email *</label>
+              <input type="email" required placeholder="admin@yourcompany.com">
+            </div>
+            <div class="form-group">
+              <label>Company Name *</label>
+              <input type="text" required placeholder="Acme Technologies">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Fleet Size</label>
+              <select>
+                <option>1 - 10 Workstations</option>
+                <option>11 - 50 Workstations</option>
+                <option>50+ Workstations &amp; Hybrid Servers</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Phone / WhatsApp *</label>
+              <input type="tel" required placeholder="+91 98765 43210">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">
+            Download Service Level Agreement (SLA) &rarr;
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- B2B SUBSCRIPTION TIERS -->
+  <section style="background:var(--bg-alt); border-top:1px solid var(--border);">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="badge-tag">Corporate Retainers</span>
+        <h2>Predictable Monthly IT Pricing</h2>
+        <p>No hourly surprises. Scale up or pause licenses anytime with 30-day flexibility.</p>
+      </div>
+
+      <div class="b2b-pricing-grid">
+        <!-- Starter Business -->
+        <div class="plan-card">
+          <h4 style="margin:0; font-size:18px;">Startup Shield</h4>
+          <p style="font-size:13px; color:var(--text-muted); margin:4px 0 0;">For boutique agencies up to 10 employees.</p>
+          <div class="plan-price">₹3,999 <span>/ month</span></div>
+          <ul class="plan-features">
+            <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Up to 10 Devices Covered</li>
+            <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>30-Minute Guaranteed Response</li>
+            <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Basic Wi-Fi &amp; Printer Tuning</li>
+            <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Remote Screen Share Remediation</li>
+          </ul>
+          <button class="btn btn-ghost btn-block" onclick="selectB2BPlan('Startup Shield')">Choose Startup Shield</button>
+        </div>
+
+        <!-- Pro Managed -->
+        <div class="plan-card popular">
+          <div class="plan-badge">MOST POPULAR</div>
+          <h4 style="margin:0; font-size:18px;">Business Pro</h4>
+          <p style="font-size:13px; color:var(--text-muted); margin:4px 0 0;">Dedicated support for scaling businesses &amp; call centers.</p>
+          <div class="plan-price">₹8,999 <span>/ month</span></div>
+          <ul class="plan-features">
+            <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Up to 35 Workstations + 1 Server</li>
+            <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>15-Minute Priority Response SLA</li>
+            <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>M365 / Google Workspace Administration</li>
+            <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Firewall &amp; VPN Tunnel Monitoring</li>
+            <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Direct Slack / WhatsApp Helpdesk</li>
+          </ul>
+          <button class="btn btn-primary btn-block" onclick="selectB2BPlan('Business Pro')">Deploy Business Pro</button>
+        </div>
+
+        <!-- Enterprise NOC -->
+        <div class="plan-card">
+          <h4 style="margin:0; font-size:18px;">Enterprise NOC</h4>
+          <p style="font-size:13px; color:var(--text-muted); margin:4px 0 0;">24/7 mission critical operations &amp; compliance.</p>
+          <div class="plan-price">₹18,999 <span>/ month</span></div>
+          <ul class="plan-features">
+            <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Unlimited Workstations + Multi-Cloud</li>
+            <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>24/7/365 Continuous Live Watch</li>
+            <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Dedicated Certified Solutions Architect</li>
+            <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Quarterly Pen-testing &amp; Audits</li>
+          </ul>
+          <button class="btn btn-ghost btn-block" onclick="selectB2BPlan('Enterprise NOC')">Inquire Enterprise</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="footer-inner">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <span>Node<span class="grad-text">Watch</span></span>
+      </div>
+      <div style="font-size:13px; color:var(--text-muted);">
+        Certified IT technicians on call · Instant dispatch across India
+      </div>
+      <div style="font-size:12px; color:var(--text-dim);">
+        © 2026 NodeWatch Technologies. All rights reserved.
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Dynamic Tab Switcher between B2C and B2B
+  function switchMode(mode) {
+    const body = document.getElementById('pageBody');
+    const btnB2C = document.getElementById('btnB2C');
+    const btnB2B = document.getElementById('btnB2B');
+    const navAction = document.getElementById('navActionBtn');
+
+    if (mode === 'b2b') {
+      body.classList.add('is-b2b');
+      btnB2B.classList.add('active');
+      btnB2C.classList.remove('active');
+      navAction.textContent = 'Get Business SLA';
+      navAction.href = '#b2bForm';
+    } else {
+      body.classList.remove('is-b2b');
+      btnB2C.classList.add('active');
+      btnB2B.classList.remove('active');
+      navAction.textContent = 'Book 20-Min Call (₹49)';
+      navAction.href = '#b2cForm';
+    }
+  }
+
+  // Pre-fill selection when clicking on an issue box
+  function prefillIssue(val) {
+    const select = document.getElementById('b2cIssueSelect');
+    if (select) {
+      select.value = val;
+      document.getElementById('b2cForm').scrollIntoView({ behavior: 'smooth' });
+      select.focus();
+    }
+  }
+
+  function selectB2BPlan(planName) {
+    alert("You selected " + planName + ". Our enterprise onboarding team will contact you for deployment.");
+    document.getElementById('b2bForm').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function handleFormSubmit(e, type) {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.textContent = 'Connecting Dispatch…';
+    
+    setTimeout(() => {
+      if (type === 'b2c') {
+        alert("Booking Confirmed for ₹49! A certified technician will call your number within 20 minutes.");
+      } else {
+        alert("Thank you! Your company's customized SLA & plan deck has been dispatched.");
+      }
+      btn.disabled = false;
+      btn.textContent = type === 'b2c' ? 'Book My Call (₹49) →' : 'Download Service Level Agreement (SLA) →';
+      e.target.reset();
+    }, 900);
+  }
+</script>
+
+</body>
+</html>
