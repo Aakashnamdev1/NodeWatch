@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NodeWatch — Tech Support On-Demand</title>
+<title>Extrovert Tech — Tech Support On-Demand</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -287,7 +287,7 @@
       <div class="logo-icon">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
       </div>
-      <span>Node<span class="grad-text">Watch</span></span>
+      <span>Extrovert<span class="grad-text">Tech</span></span>
     </a>
 
     <!-- Central Switcher: B2C vs B2B -->
@@ -316,7 +316,7 @@
     <div class="wrap hero-grid">
       <div class="hero-text">
         <div class="pill-item" style="display:inline-flex; border-color:var(--border-strong); background:var(--red-subtle); color:var(--red-primary); margin-bottom:14px;">
-          <span style="width:7px; height:7px; border-radius:50%; background:var(--red-primary);"></span> Engineers on-shift right now
+          <span style="width:7px; height:7px; border-radius:50%; background:var(--red-primary);"></span> Talk to a Real Engineer Live — No Bot Menus
         </div>
         <h1>Stuck on a tech issue? <br>Talk to an expert in <span class="grad-text">20 minutes.</span></h1>
         <p>No waiting in service centers or confusing bot menus. Book an immediate callback for just ₹49. Tell us what is broken — we diagnose, identify the root cause, and guide you through the solution live.</p>
@@ -456,7 +456,7 @@
 
       <!-- B2B Custom Quote Shell -->
       <div class="booking-card">
-        <h3 style="margin:0 0 6px; font-size:18px;">Request Enterprise SLA Assessment</h3>
+        <h3 style="margin:0 0 6px; font-size:18px;">Talk to an Enterprise Specialist</h3>
         <p style="margin:0 0 20px; font-size:13px; color:var(--text-muted);">Get a customized IT coverage plan for your workstations and servers.</p>
         
         <form id="b2bForm" onsubmit="handleFormSubmit(event, 'b2b')">
@@ -485,7 +485,7 @@
             </div>
           </div>
           <button type="submit" class="btn btn-primary btn-block">
-            Download Service Level Agreement (SLA) &rarr;
+           Get a Call in 5 Minutes  &rarr;
           </button>
         </form>
       </div>
@@ -558,13 +558,13 @@
         <div class="logo-icon">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
         </div>
-        <span>Node<span class="grad-text">Watch</span></span>
+        <span>Extrovert<span class="grad-text">Tech</span></span>
       </div>
       <div style="font-size:13px; color:var(--text-muted);">
         Certified IT technicians on call · Instant dispatch across India
       </div>
       <div style="font-size:12px; color:var(--text-dim);">
-        © 2026 NodeWatch Technologies. All rights reserved.
+        © 2026 Extrovert Tech. All rights reserved.
       </div>
     </div>
   </div>
@@ -582,7 +582,7 @@
       body.classList.add('is-b2b');
       btnB2B.classList.add('active');
       btnB2C.classList.remove('active');
-      navAction.textContent = 'Get Business SLA';
+      navAction.textContent = 'Get Business';
       navAction.href = '#b2bForm';
     } else {
       body.classList.remove('is-b2b');
@@ -607,25 +607,52 @@
     alert("You selected " + planName + ". Our enterprise onboarding team will contact you for deployment.");
     document.getElementById('b2bForm').scrollIntoView({ behavior: 'smooth' });
   }
-
-  function handleFormSubmit(e, type) {
+async function handleFormSubmit(e, type) {
     e.preventDefault();
-    const btn = e.target.querySelector('button[type="submit"]');
-    btn.disabled = true;
-    btn.textContent = 'Connecting Dispatch…';
+    const form = e.target;
+    const btn = form.querySelector('button[type="submit"]');
     
-    setTimeout(() => {
-      if (type === 'b2c') {
-        alert("Booking Confirmed for ₹49! A certified technician will call your number within 20 minutes.");
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = 'Sending details...';
+
+    // 1. Gather all form inputs
+    const formData = new FormData(form);
+    
+    // 2. Put your actual Web3Forms access key here
+    formData.append("access_key", "bb0650a2-181d-4f6d-8a01-ea5823d491f8");
+    formData.append("subject", `New  Extrovert Tech Lead: ${type.toUpperCase()}`);
+    formData.append("from_name", "Extrovert Tech Website");
+
+    try {
+      // 3. Post data directly to Web3Forms
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        if (type === 'b2c') {
+          alert("Booking Confirmed for ₹49! Details sent to our technicians.");
+        } else {
+          alert("Thank you! Your details have been received.");
+        }
+        form.reset();
       } else {
-        alert("Thank you! Your company's customized SLA & plan deck has been dispatched.");
+        alert("Submission error: " + data.message);
       }
+    } catch (err) {
+      alert("Network error. Please try again.");
+      console.error(err);
+    } finally {
       btn.disabled = false;
-      btn.textContent = type === 'b2c' ? 'Book My Call (₹49) →' : 'Download Service Level Agreement (SLA) →';
-      e.target.reset();
-    }, 900);
-  }
+      btn.textContent = originalText;
+    }
+}
 </script>
 
 </body>
 </html>
+
