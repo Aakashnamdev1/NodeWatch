@@ -7,6 +7,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+<!-- 1. Razorpay Checkout Library -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<!-- 2. International Phone Input Library (Flag + +91 Dropdown) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/css/intlTelInput.css">
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/intlTelInput.min.js"></script>
+
 <style>
   :root {
     --bg-main: #ffffff;
@@ -55,7 +63,7 @@
   svg { display: block; }
   .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
 
-  /* Animated Background */
+  /* Animated Background Canvas */
   .bg-canvas { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
   .grid-pattern {
     position: absolute; inset: 0;
@@ -138,6 +146,73 @@
     color: #fff; box-shadow: 0 4px 10px rgba(225, 29, 72, 0.3);
   }
 
+  /* Live Engineer Header Badge */
+  .live-status-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #ffffff;
+    border: 1px solid var(--border-strong);
+    padding: 6px 14px 6px 12px;
+    border-radius: 99px;
+    box-shadow: 0 4px 14px rgba(225, 29, 72, 0.08);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all .25s var(--ease);
+  }
+  .live-status-btn:hover {
+    transform: translateY(-2px);
+    border-color: var(--red-primary);
+    box-shadow: 0 8px 20px rgba(225, 29, 72, 0.16);
+  }
+  .live-pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: #16a34a;
+    border-radius: 50%;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .live-pulse-dot::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: rgba(22, 163, 74, 0.4);
+    animation: livePulseAnim 1.8s infinite ease-out;
+  }
+  @keyframes livePulseAnim {
+    0% { transform: scale(0.8); opacity: 1; }
+    100% { transform: scale(2.4); opacity: 0; }
+  }
+  .live-status-text {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-head);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: opacity 0.3s ease;
+  }
+  .live-status-text strong {
+    color: #16a34a;
+    font-weight: 700;
+  }
+  .live-wait-time {
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+  .live-btn-tag {
+    background: var(--grad-red);
+    color: #ffffff;
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 99px;
+    box-shadow: 0 2px 8px rgba(225, 29, 72, 0.25);
+    margin-left: 2px;
+  }
+
   /* Buttons */
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -167,7 +242,7 @@
   }
   .pill-item svg { color: var(--red-primary); }
 
-  /* Fast Card Side (B2C / B2B) */
+  /* Booking Card */
   .booking-card {
     background: #fff; border: 1px solid var(--border-strong); border-radius: 22px;
     padding: 32px; box-shadow: var(--shadow-hover); position: relative; overflow: hidden;
@@ -185,7 +260,14 @@
   .deal-price { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 20px; font-weight: 800; color: var(--red-primary); }
   .deal-price span { font-size: 12px; text-decoration: line-through; color: var(--text-dim); margin-right: 4px; }
 
-  /* Top Issues Section (B2C) */
+  @keyframes cardHighlight {
+    0% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.6); }
+    50% { box-shadow: 0 0 0 8px rgba(225, 29, 72, 0.2); }
+    100% { box-shadow: var(--shadow-hover); }
+  }
+  .highlight-card { animation: cardHighlight 1.2s ease; }
+
+  /* Sections & Issues Grid */
   section { position: relative; z-index: 1; padding: 70px 0; }
   .section-head { text-align: center; max-width: 600px; margin: 0 auto 46px; }
   .section-head h2 { font-size: clamp(26px, 3vw, 36px); font-weight: 800; letter-spacing: -0.02em; margin: 10px 0; }
@@ -228,7 +310,19 @@
   }
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-  /* B2B Specific Styling (Hidden by default, shown when toggled) */
+  /* Phone Input Styling with Country Flags */
+  .iti { width: 100%; display: block; }
+  .iti input { width: 100% !important; }
+  .iti__country-list {
+    z-index: 1000;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--text-head);
+  }
+
+  /* View Switching (B2C vs B2B) */
   .b2b-view { display: none; }
   .b2c-view { display: block; }
 
@@ -258,6 +352,27 @@
   .plan-features li { display: flex; align-items: center; gap: 9px; font-size: 13px; }
   .plan-features li svg { color: var(--red-primary); flex-shrink: 0; }
 
+  /* Mobile Sticky Bar */
+  .mobile-sticky-cta { display: none; }
+  @media (max-width: 768px) {
+    .mobile-sticky-cta {
+      display: flex;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--border-strong);
+      box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.08);
+      z-index: 999;
+      justify-content: space-between;
+      align-items: center;
+    }
+    body { padding-bottom: 74px; }
+  }
+
   footer { background: #fff; padding: 40px 0 30px; border-top: 1px solid var(--border); }
   .footer-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
 
@@ -274,13 +389,14 @@
 </head>
 <body id="pageBody">
 
+<!-- Background Animated Grid & Glow -->
 <div class="bg-canvas">
   <div class="grid-pattern"></div>
   <div class="orb orb-1"></div>
   <div class="orb orb-2"></div>
 </div>
 
-<!-- HEADER WITH INSTANT TOGGLE -->
+<!-- HEADER WITH TOGGLE & LIVE ENGINEER AVAILABILITY -->
 <header class="topbar">
   <div class="topbar-inner">
     <a class="logo" href="#">
@@ -302,8 +418,16 @@
       </button>
     </div>
 
+    <!-- Live Availability Badge / Button -->
     <div>
-      <a class="btn btn-primary btn-sm" href="#book" id="navActionBtn">Book 20-Min Call</a>
+      <a class="live-status-btn" href="#book" id="navActionBtn" onclick="scrollToBooking(event)">
+        <span class="live-pulse-dot"></span>
+        <span class="live-status-text" id="liveStatusContainer">
+          <span><strong id="liveEngCount">3</strong> Engineers Live</span>
+          <span class="live-wait-time">· Wait: <span id="liveWaitTime">~14 mins</span></span>
+        </span>
+        <span class="live-btn-tag">Book Slot (₹49) &rarr;</span>
+      </a>
     </div>
   </div>
 </header>
@@ -312,7 +436,7 @@
 <!-- B2C VIEW: CONSUMER & PERSONAL QUICK REPAIR -->
 <!-- ========================================== -->
 <div class="b2c-view">
-  <section class="hero">
+  <section class="hero" style="background: transparent;">
     <div class="wrap hero-grid">
       <div class="hero-text">
         <div class="pill-item" style="display:inline-flex; border-color:var(--border-strong); background:var(--red-subtle); color:var(--red-primary); margin-bottom:14px;">
@@ -342,16 +466,16 @@
           <div class="form-row">
             <div class="form-group">
               <label>Your Name *</label>
-              <input type="text" required placeholder="Aakash Namdev">
+              <input type="text" name="name" id="b2cName" required placeholder="Aakash Namdev">
             </div>
             <div class="form-group">
               <label>Phone for Callback *</label>
-              <input type="tel" required placeholder="Mobile number">
+              <input type="tel" name="phone" id="b2cPhone" required placeholder="98765 43210">
             </div>
           </div>
           <div class="form-group">
             <label>What's causing trouble? *</label>
-            <select id="b2cIssueSelect" required>
+            <select id="b2cIssueSelect" name="issue" required>
               <option value="">Select your main issue</option>
               <option value="wifi">Wi-Fi drops / Router unreachable</option>
               <option value="slow">PC or Laptop running extremely slow</option>
@@ -364,7 +488,7 @@
           </div>
           <div class="form-group">
             <label>Briefly explain (1 line)</label>
-            <textarea rows="2" placeholder="e.g. My Wi-Fi disconnects every 5 mins only on my Windows laptop"></textarea>
+            <textarea name="description" id="b2cDesc" rows="2" placeholder="e.g. My Wi-Fi disconnects every 5 mins only on my Windows laptop"></textarea>
           </div>
           <button type="submit" class="btn btn-primary btn-block">
             Book My Call (₹49) &rarr;
@@ -378,7 +502,7 @@
   </section>
 
   <!-- MOST COMMON USER ISSUES (B2C) -->
-  <section style="background:var(--bg-alt); border-top:1px solid var(--border);">
+  <section style="background: transparent; border-top: 1px solid rgba(225, 29, 72, 0.08);">
     <div class="wrap">
       <div class="section-head">
         <span class="badge-tag">Most Frequent Fixes</span>
@@ -387,42 +511,36 @@
       </div>
 
       <div class="issues-grid">
-        <!-- 1 -->
         <div class="issue-box" onclick="prefillIssue('wifi')">
           <div class="issue-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a9 9 0 0 1 0 18"/></svg></div>
           <h4>Wi-Fi &amp; Internet Dropouts</h4>
           <p>Frequent disconnects, router IP conflicts, slow speed on specific laptops, or DNS unreachable errors.</p>
           <div class="issue-footer"><span>Avg Fix: 15 mins</span> <span>Select &rarr;</span></div>
         </div>
-        <!-- 2 -->
         <div class="issue-box" onclick="prefillIssue('slow')">
           <div class="issue-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
           <h4>Slow Laptop &amp; High CPU</h4>
           <p>100% disk usage, freezing during boot, heating, fan noise, or background bloatware clogging Windows &amp; Mac.</p>
           <div class="issue-footer"><span>Avg Fix: 20 mins</span> <span>Select &rarr;</span></div>
         </div>
-        <!-- 3 -->
         <div class="issue-box" onclick="prefillIssue('printer')">
           <div class="issue-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></div>
           <h4>Printer Offline / Driver Error</h4>
           <p>Wireless printer not found, print queue stuck, spooler service errors for HP, Canon, Epson &amp; Brother.</p>
           <div class="issue-footer"><span>Avg Fix: 12 mins</span> <span>Select &rarr;</span></div>
         </div>
-        <!-- 4 -->
         <div class="issue-box" onclick="prefillIssue('virus')">
           <div class="issue-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v5c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V7l8-4z"/></svg></div>
           <h4>Malware &amp; Browser Hijacks</h4>
           <p>Suspicious popups, Chrome search redirects, suspected phishing files, and antivirus cleanup.</p>
           <div class="issue-footer"><span>Avg Fix: 25 mins</span> <span>Select &rarr;</span></div>
         </div>
-        <!-- 5 -->
         <div class="issue-box" onclick="prefillIssue('email')">
           <div class="issue-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 7l9 6 9-6"/></svg></div>
           <h4>Email Lockout &amp; Sync Errors</h4>
           <p>Outlook password loops, IMAP/SMTP failed connections, 2-factor authentication locks, and mailbox full.</p>
           <div class="issue-footer"><span>Avg Fix: 15 mins</span> <span>Select &rarr;</span></div>
         </div>
-        <!-- 6 -->
         <div class="issue-box" onclick="prefillIssue('backup')">
           <div class="issue-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
           <h4>Data Backup &amp; Recovery</h4>
@@ -438,7 +556,8 @@
 <!-- B2B VIEW: MANAGED IT FOR BUSINESS & BPO    -->
 <!-- ========================================== -->
 <div class="b2b-view">
-  <section class="hero">
+  <!-- B2B Hero Section -->
+  <section class="hero" style="background: transparent;">
     <div class="wrap hero-grid">
       <div class="hero-text">
         <div class="pill-item" style="display:inline-flex; border-color:var(--border-strong); background:var(--red-subtle); color:var(--red-primary); margin-bottom:14px;">
@@ -454,7 +573,7 @@
         </div>
       </div>
 
-      <!-- B2B Custom Quote Shell -->
+      <!-- B2B Custom Quote Form -->
       <div class="booking-card">
         <h3 style="margin:0 0 6px; font-size:18px;">Talk to an Enterprise Specialist</h3>
         <p style="margin:0 0 20px; font-size:13px; color:var(--text-muted);">Get a customized IT coverage plan for your workstations and servers.</p>
@@ -463,17 +582,17 @@
           <div class="form-row">
             <div class="form-group">
               <label>Work Email *</label>
-              <input type="email" required placeholder="admin@yourcompany.com">
+              <input type="email" name="work_email" required placeholder="admin@yourcompany.com">
             </div>
             <div class="form-group">
               <label>Company Name *</label>
-              <input type="text" required placeholder="Acme Technologies">
+              <input type="text" name="company_name" required placeholder="Acme Technologies">
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label>Fleet Size</label>
-              <select>
+              <select name="fleet_size">
                 <option>1 - 10 Workstations</option>
                 <option>11 - 50 Workstations</option>
                 <option>50+ Workstations &amp; Hybrid Servers</option>
@@ -481,19 +600,107 @@
             </div>
             <div class="form-group">
               <label>Phone / WhatsApp *</label>
-              <input type="tel" required placeholder="+91 98765 43210">
+              <input type="tel" name="phone_whatsapp" id="b2bPhone" required placeholder="98765 43210">
             </div>
           </div>
+
+          <!-- Service Selection Dropdown -->
+          <div class="form-group">
+            <label>Service Required *</label>
+            <select name="b2b_service" id="b2bServiceSelect" required>
+              <option value="Complete Startup & Office IT Setup">Complete Startup &amp; Office IT Setup</option>
+              <option value="Microsoft 365 & Business Email Setup">Microsoft 365 &amp; Business Email Setup</option>
+              <option value="Annual IT Maintenance Contract (AMC)">Annual IT Maintenance Contract (AMC)</option>
+              <option value="Firewall, VPN & Network Security">Firewall, VPN &amp; Network Security</option>
+              <option value="Cloud Servers & AWS Management">Cloud Servers &amp; AWS Infrastructure</option>
+              <option value="Disaster Recovery & Enterprise Backup">Disaster Recovery &amp; Enterprise Backup</option>
+              <option value="General Enterprise Consultation">Other Custom Enterprise Request</option>
+            </select>
+          </div>
+
           <button type="submit" class="btn btn-primary btn-block">
-           Get a Call in 5 Minutes  &rarr;
+           Get a Call in 5 Minutes &rarr;
           </button>
         </form>
       </div>
     </div>
   </section>
 
-  <!-- B2B SUBSCRIPTION TIERS -->
-  <section style="background:var(--bg-alt); border-top:1px solid var(--border);">
+  <!-- B2B ENTERPRISE SERVICES GRID (Dotted Background) -->
+  <section style="background: transparent; border-top: 1px solid rgba(225, 29, 72, 0.08); border-bottom: 1px solid rgba(225, 29, 72, 0.08);">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="badge-tag">Full-Stack Corporate IT</span>
+        <h2>End-to-End Enterprise Services</h2>
+        <p>From day-one startup office workstation setups to round-the-clock infrastructure maintenance contracts.</p>
+      </div>
+
+      <div class="issues-grid">
+        <!-- 1: Startup & Office Setup -->
+        <div class="issue-box" onclick="selectB2BService('Complete Startup & Office IT Setup')">
+          <div class="issue-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4.5c1.62-1.63 5-2 5-2"/><path d="M12 15v5s3.03-.55 4.5-2c1.63-1.62 2-5 2-5"/></svg>
+          </div>
+          <h4>New Startup &amp; Office IT Setup</h4>
+          <p>Complete day-one turnkey deployment: workstation provisioning, CAT6 structured cabling, Wi-Fi mesh networks, biometric attendance, and network printers.</p>
+          <div class="issue-footer"><span>Turnkey Setup</span> <span>Request Quote &rarr;</span></div>
+        </div>
+
+        <!-- 2: Microsoft 365 & Email Setup -->
+        <div class="issue-box" onclick="selectB2BService('Microsoft 365 & Business Email Setup')">
+          <div class="issue-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          </div>
+          <h4>Microsoft 365 &amp; Google Workspace</h4>
+          <p>Business email migration, custom domain DNS (SPF, DKIM, DMARC), Teams / SharePoint setup, Active Directory integration, and multi-tenant security licensing.</p>
+          <div class="issue-footer"><span>Zero Data Loss</span> <span>Request Quote &rarr;</span></div>
+        </div>
+
+        <!-- 3: Annual Maintenance Contracts (AMC) -->
+        <div class="issue-box" onclick="selectB2BService('Annual IT Maintenance Contract (AMC)')">
+          <div class="issue-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+          </div>
+          <h4>Comprehensive IT AMC Contracts</h4>
+          <p>Scheduled preventive maintenance, hardware repair/replacement coverage, quarterly audit reports, on-site engineer dispatch, and unlimited priority remote helpdesk.</p>
+          <div class="issue-footer"><span>15-Min Response SLA</span> <span>Request Quote &rarr;</span></div>
+        </div>
+
+        <!-- 4: Firewall, VPN & Network Security -->
+        <div class="issue-box" onclick="selectB2BService('Firewall, VPN & Network Security')">
+          <div class="issue-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <h4>Firewall, VPN &amp; Network Security</h4>
+          <p>Deployment of enterprise firewalls (Sophos, Fortinet), encrypted site-to-site VPNs for remote teams, intrusion prevention (IPS), and centralized endpoint antivirus.</p>
+          <div class="issue-footer"><span>Enterprise Hardening</span> <span>Request Quote &rarr;</span></div>
+        </div>
+
+        <!-- 5: Cloud Servers & AWS Infrastructure -->
+        <div class="issue-box" onclick="selectB2BService('Cloud Servers & AWS Management')">
+          <div class="issue-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+          </div>
+          <h4>Cloud Servers &amp; Data Storage</h4>
+          <p>AWS EC2 &amp; Azure VM configuration, Windows/Linux server management, local Synology NAS file servers, user permission hierarchies, and 99.9% uptime monitoring.</p>
+          <div class="issue-footer"><span>High Availability</span> <span>Request Quote &rarr;</span></div>
+        </div>
+
+        <!-- 6: Disaster Recovery & Backup -->
+        <div class="issue-box" onclick="selectB2BService('Disaster Recovery & Enterprise Backup')">
+          <div class="issue-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <h4>Disaster Recovery &amp; Backup</h4>
+          <p>Automated cloud snapshots, ransomware-proof immutable backups, database replication, and guaranteed sub-1-hour recovery time objectives (RTO).</p>
+          <div class="issue-footer"><span>100% Data Integrity</span> <span>Request Quote &rarr;</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- B2B SUBSCRIPTION TIERS (Dotted Background) -->
+  <section style="background: transparent;">
     <div class="wrap">
       <div class="section-head">
         <span class="badge-tag">Corporate Retainers</span>
@@ -502,7 +709,6 @@
       </div>
 
       <div class="b2b-pricing-grid">
-        <!-- Starter Business -->
         <div class="plan-card">
           <h4 style="margin:0; font-size:18px;">Startup Shield</h4>
           <p style="font-size:13px; color:var(--text-muted); margin:4px 0 0;">For boutique agencies up to 10 employees.</p>
@@ -516,7 +722,6 @@
           <button class="btn btn-ghost btn-block" onclick="selectB2BPlan('Startup Shield')">Choose Startup Shield</button>
         </div>
 
-        <!-- Pro Managed -->
         <div class="plan-card popular">
           <div class="plan-badge">MOST POPULAR</div>
           <h4 style="margin:0; font-size:18px;">Business Pro</h4>
@@ -532,7 +737,6 @@
           <button class="btn btn-primary btn-block" onclick="selectB2BPlan('Business Pro')">Deploy Business Pro</button>
         </div>
 
-        <!-- Enterprise NOC -->
         <div class="plan-card">
           <h4 style="margin:0; font-size:18px;">Enterprise NOC</h4>
           <p style="font-size:13px; color:var(--text-muted); margin:4px 0 0;">24/7 mission critical operations &amp; compliance.</p>
@@ -548,6 +752,19 @@
       </div>
     </div>
   </section>
+</div>
+
+<!-- Mobile Sticky Bottom Booking Bar -->
+<div class="mobile-sticky-cta">
+  <div>
+    <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Diagnostic Call</div>
+    <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 18px; font-weight: 800; color: var(--red-primary);">
+      <span style="font-size: 12px; text-decoration: line-through; color: var(--text-dim); margin-right: 4px;">₹499</span> ₹49
+    </div>
+  </div>
+  <a href="#b2cForm" class="btn btn-primary btn-sm" onclick="document.getElementById('b2cName').focus();">
+    Book 20-Min Call &rarr;
+  </a>
 </div>
 
 <!-- FOOTER -->
@@ -571,6 +788,38 @@
 </footer>
 
 <script>
+  // YOUR RAZORPAY KEY ID
+  const RAZORPAY_KEY_ID = "rzp_test_Tj7sLwGLAM0SrR";
+
+  // 1. Initialize Country Selector for B2C Phone
+  const b2cPhoneInput = document.getElementById("b2cPhone");
+  const itiB2C = window.intlTelInput(b2cPhoneInput, {
+    initialCountry: "in",
+    separateDialCode: true,
+    utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js"
+  });
+
+  // 2. Initialize Country Selector for B2B Phone
+  const b2bPhoneInput = document.getElementById("b2bPhone");
+  const itiB2B = window.intlTelInput(b2bPhoneInput, {
+    initialCountry: "in",
+    separateDialCode: true,
+    utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js"
+  });
+
+  // 3. Enforce Numbers Only & 10-digit limit for India
+  function enforcePhoneLimit(input, iti) {
+    input.addEventListener("input", function () {
+      this.value = this.value.replace(/[^0-9]/g, '');
+      const countryData = iti.getSelectedCountryData();
+      if (countryData.iso2 === "in" && this.value.length > 10) {
+        this.value = this.value.slice(0, 10);
+      }
+    });
+  }
+  enforcePhoneLimit(b2cPhoneInput, itiB2C);
+  enforcePhoneLimit(b2bPhoneInput, itiB2B);
+
   // Dynamic Tab Switcher between B2C and B2B
   function switchMode(mode) {
     const body = document.getElementById('pageBody');
@@ -582,63 +831,216 @@
       body.classList.add('is-b2b');
       btnB2B.classList.add('active');
       btnB2C.classList.remove('active');
-      navAction.textContent = 'Get Business';
-      navAction.href = '#b2bForm';
+      if (navAction) {
+        navAction.innerHTML = '<span class="live-btn-tag" style="margin:0; padding:6px 14px;">Request Proposal &rarr;</span>';
+        navAction.href = '#b2bForm';
+      }
     } else {
       body.classList.remove('is-b2b');
       btnB2C.classList.add('active');
       btnB2B.classList.remove('active');
-      navAction.textContent = 'Book 20-Min Call (₹49)';
-      navAction.href = '#b2cForm';
+      if (navAction) {
+        navAction.innerHTML = `
+          <span class="live-pulse-dot"></span>
+          <span class="live-status-text" id="liveStatusContainer">
+            <span><strong id="liveEngCount">3</strong> Engineers Live</span>
+            <span class="live-wait-time">· Wait: <span id="liveWaitTime">~14 mins</span></span>
+          </span>
+          <span class="live-btn-tag">Book Slot (₹49) &rarr;</span>
+        `;
+        navAction.href = '#book';
+      }
     }
   }
 
-  // Pre-fill selection when clicking on an issue box
+  // Pre-fill selection when clicking on an issue box (B2C)
   function prefillIssue(val) {
     const select = document.getElementById('b2cIssueSelect');
     if (select) {
       select.value = val;
-      document.getElementById('b2cForm').scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('b2cForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
       select.focus();
     }
   }
 
+  // Select Plan (B2B)
   function selectB2BPlan(planName) {
-    alert("You selected " + planName + ". Our enterprise onboarding team will contact you for deployment.");
-    document.getElementById('b2bForm').scrollIntoView({ behavior: 'smooth' });
+    const select = document.getElementById('b2bServiceSelect');
+    const form = document.getElementById('b2bForm');
+    if (select) select.value = "Annual IT Maintenance Contract (AMC)";
+    if (form) {
+      form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      alert("Selected " + planName + ". Please complete your contact details.");
+      form.querySelector('input[name="work_email"]').focus();
+    }
   }
-async function handleFormSubmit(e, type) {
+
+  // Select Service (B2B)
+  function selectB2BService(serviceName) {
+    const select = document.getElementById('b2bServiceSelect');
+    const form = document.getElementById('b2bForm');
+    if (select) select.value = serviceName;
+    if (form) {
+      form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const emailInput = form.querySelector('input[name="work_email"]');
+      if (emailInput) setTimeout(() => emailInput.focus(), 500);
+    }
+  }
+
+  // Smooth scroll & card highlight on live badge click
+  function scrollToBooking(e) {
+    e.preventDefault();
+    const card = document.getElementById('book');
+    const nameInput = document.getElementById('b2cName');
+    if (card) {
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      card.classList.add('highlight-card');
+      setTimeout(() => card.classList.remove('highlight-card'), 1500);
+      if (nameInput) setTimeout(() => nameInput.focus(), 600);
+    }
+  }
+
+  // Live Status Simulator (Updates numbers every 2 minutes)
+  const statusPool = [
+    { engineers: 3, wait: "~14 mins" },
+    { engineers: 2, wait: "~11 mins" },
+    { engineers: 4, wait: "~15 mins" },
+    { engineers: 3, wait: "~12 mins" },
+    { engineers: 2, wait: "~16 mins" }
+  ];
+  let statusIndex = 0;
+  setInterval(function () {
+    statusIndex = (statusIndex + 1) % statusPool.length;
+    const nextStatus = statusPool[statusIndex];
+    const container = document.getElementById('liveStatusContainer');
+    const engCount = document.getElementById('liveEngCount');
+    const waitTime = document.getElementById('liveWaitTime');
+    if (container && engCount && waitTime) {
+      container.style.opacity = '0';
+      setTimeout(() => {
+        engCount.textContent = nextStatus.engineers;
+        waitTime.textContent = nextStatus.wait;
+        container.style.opacity = '1';
+      }, 350);
+    }
+  }, 120000); // 2 minutes
+
+  // Form Submission Handler (Both B2C and B2B)
+  async function handleFormSubmit(e, type) {
     e.preventDefault();
     const form = e.target;
     const btn = form.querySelector('button[type="submit"]');
-    
-    btn.disabled = true;
     const originalText = btn.textContent;
-    btn.textContent = 'Sending details...';
-
-    // 1. Gather all form inputs
     const formData = new FormData(form);
-    
-    // 2. Put your actual Web3Forms access key here
+
+    // ==========================================
+    // B2C FLOW: RAZORPAY PAYMENT (₹49) + WHATSAPP
+    // ==========================================
+    if (type === 'b2c') {
+      const name = formData.get("name") || "";
+      const phoneInputVal = b2cPhoneInput.value.trim();
+      const phone = itiB2C.getNumber(); // Full number with +91
+
+      if (phoneInputVal.length !== 10 && itiB2C.getSelectedCountryData().iso2 === "in") {
+        alert("Please enter a valid 10-digit mobile number.");
+        b2cPhoneInput.focus();
+        return;
+      }
+      formData.set("phone", phone);
+
+      const options = {
+        key: RAZORPAY_KEY_ID,
+        amount: 4900,
+        currency: "INR",
+        name: "Extrovert Tech",
+        description: "Introductory Diagnostic Call Fee",
+        prefill: {
+          name: name,
+          contact: phone
+        },
+        theme: {
+          color: "#e11d48"
+        },
+        handler: async function (paymentResponse) {
+          btn.disabled = true;
+          btn.textContent = 'Confirming booking...';
+
+          formData.append("access_key", "bb0650a2-181d-4f6d-8a01-ea5823d491f8");
+          formData.append("subject", `New Paid Booking (₹49): ${name}`);
+          formData.append("Payment_ID", paymentResponse.razorpay_payment_id);
+          formData.append("Amount_Paid", "₹49");
+          formData.append("Status", "Payment Verified");
+
+          try {
+            await fetch("https://api.web3forms.com/submit", {
+              method: "POST",
+              body: formData
+            });
+
+            alert(`Booking Confirmed! Payment ID: ${paymentResponse.razorpay_payment_id}\nConnecting to WhatsApp...`);
+            form.reset();
+
+            // WhatsApp Redirect
+            const myWhatsAppNumber = "918826886605"; // REPLACE WITH YOUR REAL NUMBER
+            const message = encodeURIComponent(
+              `*New Diagnostic Call Booking (₹49)*\n\n` +
+              `👤 *Name:* ${name}\n` +
+              `📞 *Phone:* ${phone}\n` +
+              `⚠️ *Issue:* ${formData.get("issue")}\n` +
+              `💳 *Payment ID:* ${paymentResponse.razorpay_payment_id}\n\n` +
+              `Please assign an engineer to call me.`
+            );
+            window.location.href = `https://wa.me/${myWhatsAppNumber}?text=${message}`;
+
+          } catch (err) {
+            console.error(err);
+          } finally {
+            btn.disabled = false;
+            btn.textContent = originalText;
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            btn.disabled = false;
+            btn.textContent = originalText;
+          }
+        }
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.open();
+      return;
+    }
+
+    // ==========================================
+    // B2B FLOW: DIRECT SUBMISSION (NO PAYMENT)
+    // ==========================================
+    const b2bPhoneInputVal = b2bPhoneInput.value.trim();
+    const b2bFullPhone = itiB2B.getNumber();
+
+    if (b2bPhoneInputVal.length !== 10 && itiB2B.getSelectedCountryData().iso2 === "in") {
+      alert("Please enter a valid 10-digit mobile number.");
+      b2bPhoneInput.focus();
+      return;
+    }
+    formData.set("phone_whatsapp", b2bFullPhone);
+
+    btn.disabled = true;
+    btn.textContent = 'Submitting request...';
+
     formData.append("access_key", "bb0650a2-181d-4f6d-8a01-ea5823d491f8");
-    formData.append("subject", `New  Extrovert Tech Lead: ${type.toUpperCase()}`);
-    formData.append("from_name", "Extrovert Tech Website");
+    formData.append("subject", `New Enterprise Lead: ${formData.get("company_name")} (${formData.get("b2b_service")})`);
+    formData.append("from_name", "Extrovert Tech Enterprise");
 
     try {
-      // 3. Post data directly to Web3Forms
       const response = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
         body: formData
       });
 
       const data = await response.json();
-
       if (data.success) {
-        if (type === 'b2c') {
-          alert("Booking Confirmed for ₹49! Details sent to our technicians.");
-        } else {
-          alert("Thank you! Your details have been received.");
-        }
+        alert("Thank you! Your enterprise inquiry has been received. Our solutions architect will call you within 5 minutes.");
         form.reset();
       } else {
         alert("Submission error: " + data.message);
@@ -650,9 +1052,8 @@ async function handleFormSubmit(e, type) {
       btn.disabled = false;
       btn.textContent = originalText;
     }
-}
+  }
 </script>
 
 </body>
 </html>
-
